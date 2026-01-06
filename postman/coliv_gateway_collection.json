@@ -1,0 +1,315 @@
+{
+    "info": {
+        "name": "Coliv Gateway API",
+        "description": "API collection for testing coliv_gateway webhook dispatcher",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health Check",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/api/health",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "health"]
+                }
+            }
+        },
+        {
+            "name": "Get Status Mappings",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{base_url}}/api/status-mappings",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "status-mappings"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Delivery Delivered (FR)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 4,\n    \"service\": \"delivery\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Delivery Delivered (EN)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 4,\n    \"service\": \"delivery\",\n    \"lang\": \"en\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Delivery Delivered (AR)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 4,\n    \"service\": \"delivery\",\n    \"lang\": \"ar\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Call Failed (Out of Stock)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 29,\n    \"service\": \"call_center\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Call Confirmed",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 27,\n    \"service\": \"call_center\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Call Cancelled (Changed Mind)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 48,\n    \"service\": \"call_center\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Delivery Failed (Unreachable)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 2,\n    \"service\": \"delivery\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Return to Hub",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 84,\n    \"service\": \"delivery\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - Warehouse Packed",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 17,\n    \"service\": \"warehouse\",\n    \"lang\": \"fr\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch - With Custom Reason",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"order_id\": 12345,\n    \"status_id\": 14,\n    \"service\": \"delivery\",\n    \"reason\": \"Package damaged during transit\",\n    \"lang\": \"en\"\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch"]
+                }
+            }
+        },
+        {
+            "name": "Dispatch Bulk",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"items\": [\n        {\n            \"order_id\": 12345,\n            \"status_id\": 4,\n            \"service\": \"delivery\"\n        },\n        {\n            \"order_id\": 12346,\n            \"status_id\": 27,\n            \"service\": \"call_center\"\n        },\n        {\n            \"order_id\": 12347,\n            \"status_id\": 17,\n            \"service\": \"warehouse\"\n        }\n    ]\n}"
+                },
+                "url": {
+                    "raw": "{{base_url}}/api/dispatch/bulk",
+                    "host": ["{{base_url}}"],
+                    "path": ["api", "dispatch", "bulk"]
+                }
+            }
+        }
+    ]
+}
