@@ -1,0 +1,418 @@
+{
+  "info": {
+    "name": "Colivraison Gateway API",
+    "description": "API collection for testing Colivraison Gateway endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_token",
+      "value": "YOUR_API_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "webhook_secret",
+      "value": "YOUR_WEBHOOK_SECRET_HERE",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public Endpoints",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check the health status of the gateway"
+          },
+          "response": []
+        },
+        {
+          "name": "Status Mappings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/status-mappings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "status-mappings"]
+            },
+            "description": "Get status mapping configurations"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhook Dispatch",
+      "item": [
+        {
+          "name": "Dispatch Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Secret",
+                "value": "{{webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 123456,\n  \"status_id\": 101,\n  \"service\": \"delivery\",\n  \"reason\": \"Package delivered successfully\",\n  \"lang\": \"fr\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/dispatch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dispatch"]
+            },
+            "description": "Internal endpoint - Dispatch webhooks with full parameters (used by internal services)"
+          },
+          "response": []
+        },
+        {
+          "name": "Dispatch to Partners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Secret",
+                "value": "{{webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 123456,\n  \"id_stats\": 101,\n  \"id_partenaire\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhook/dispatch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhook", "dispatch"]
+            },
+            "description": "Receives status updates from ColivraisonExpress/BEA and dispatches to partner webhooks"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@colivraison.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": ["{{base_url}}"],
+              "path": ["login"]
+            },
+            "description": "Admin login"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": ["{{base_url}}"],
+              "path": ["logout"]
+            },
+            "description": "Admin logout"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Webhook Management",
+      "item": [
+        {
+          "name": "List Webhooks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks"]
+            },
+            "description": "Get all webhook configurations"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Webhook Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks", "1"]
+            },
+            "description": "Get specific webhook details"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Partner Delivery Updates\",\n  \"url\": \"https://partner-api.example.com/webhook/delivery\",\n  \"method\": \"POST\",\n  \"headers\": {\n    \"X-API-Key\": \"partner-secret-key\",\n    \"Content-Type\": \"application/json\"\n  },\n  \"events\": [\n    \"order.created\",\n    \"order.status.updated\",\n    \"delivery.completed\"\n  ],\n  \"active\": true,\n  \"retry_config\": {\n    \"max_attempts\": 5,\n    \"backoff_seconds\": [10, 30, 60, 300, 600]\n  },\n  \"timeout_seconds\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks"]
+            },
+            "description": "Create new webhook configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Webhook",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Partner Webhook\",\n  \"url\": \"https://new-partner-api.example.com/webhook\",\n  \"active\": true,\n  \"headers\": {\n    \"Authorization\": \"Bearer new-token\"\n  },\n  \"events\": [\n    \"order.status.updated\",\n    \"delivery.completed\",\n    \"delivery.failed\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks", "1"]
+            },
+            "description": "Update webhook configuration"
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Webhook Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"active\": false,\n  \"reason\": \"Maintenance mode\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks/1/toggle",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks", "1", "toggle"]
+            },
+            "description": "Enable or disable webhook"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Webhook",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/admin/webhooks/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "webhooks", "1"]
+            },
+            "description": "Delete webhook configuration"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Test Scenarios",
+      "item": [
+        {
+          "name": "Test: Delivery Completed (from BEA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Secret",
+                "value": "{{webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 123456,\n  \"id_stats\": 4,\n  \"id_partenaire\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhook/dispatch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhook", "dispatch"]
+            },
+            "description": "Simulates BEA sending delivery completed status (id_stats=4 maps to delivery_delivered)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test: Delivery Failed (from BEA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Secret",
+                "value": "{{webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 123457,\n  \"id_stats\": 2,\n  \"id_partenaire\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhook/dispatch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhook", "dispatch"]
+            },
+            "description": "Simulates BEA sending delivery failed status (id_stats=2 maps to delivery_failed)"
+          },
+          "response": []
+        },
+        {
+          "name": "Test: Call Confirmed (from BEA)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Webhook-Secret",
+                "value": "{{webhook_secret}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_id\": 123458,\n  \"id_stats\": 27,\n  \"id_partenaire\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhook/dispatch",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhook", "dispatch"]
+            },
+            "description": "Simulates BEA sending call confirmed status (id_stats=27 maps to call_confirmed)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

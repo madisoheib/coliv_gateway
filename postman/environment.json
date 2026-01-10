@@ -1,0 +1,75 @@
+{
+  "id": "colivraison-env",
+  "name": "Colivraison Gateway Environment",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "https://webhook.colivraison.express",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "local_url",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "staging_url",
+      "value": "https://staging-webhook.colivraison.express",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "production_url",
+      "value": "https://webhook.colivraison.express",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "api_token",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "webhook_secret",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "admin_email",
+      "value": "admin@colivraison.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "admin_password",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "partner_id",
+      "value": "PARTNER-001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_order_id",
+      "value": "ORD-TEST-001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "test_tracking_number",
+      "value": "CLV-TEST-001",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2024-01-10T10:00:00.000Z",
+  "_postman_exported_using": "Postman/10.0.0"
+}

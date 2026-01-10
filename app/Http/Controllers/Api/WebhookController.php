@@ -231,35 +231,6 @@ class WebhookController extends Controller
             ->get();
     }
 
-    /**
-     * Get status name mapping
-     */
-    private function getStatusName($statusId)
-    {
-        $statusMap = [
-            1 => 'pending',
-            2 => 'confirmed',
-            3 => 'returned',
-            4 => 'in_transit',
-            5 => 'delivered',
-            6 => 'failed_delivery',
-            10 => 'out_for_delivery',
-            11 => 'at_hub',
-            15 => 'cancelled',
-            16 => 'prepared',
-            18 => 'ready_for_pickup',
-            22 => 'delivered_cod',
-            23 => 'delivered_free',
-            24 => 'delivered_exchange',
-            25 => 'delivered_return',
-            27 => 'confirmed_by_client',
-            34 => 'call_scheduled',
-            56 => 'relaunched',
-            91 => 'call_returned'
-        ];
-
-        return $statusMap[$statusId] ?? "status_$statusId";
-    }
 
     /**
      * Send webhook to individual partner endpoint
@@ -272,22 +243,19 @@ class WebhookController extends Controller
             // Get default lang from webhook or use 'fr'
             $defaultLang = $webhook->getLanguage();
             
-            // Build the structured payload for partner
+            // Determine service type from status ID
+            $service = $this->statusMapper->determineServiceType(
+                $this->statusMapper->getMainStatus($newStatusId)
+            );
+            
+            // Build the structured payload for partner using StatusMapper
+            $statusPayload = $this->statusMapper->buildStatusPayload($newStatusId, $defaultLang);
+            
             $webhookPayload = [
-                'event' => 'status_change',
-                'data' => [
-                    'order_id' => $colis->id_colis,
-                    'order_ref' => $colis->ref_order,
-                    'tracking_code' => $colis->tracking_order,
-                    'status' => [
-                        'main_id' => $newStatusId,
-                        'name' => $this->getStatusName($newStatusId),
-                        'sub_id' => $newStatusId * 10 + 1, // Generate sub_id
-                        'reason' => 'field_stats'
-                    ],
-                    'updated_at' => now()->toISOString()
-                ],
-                'timestamp' => now()->toISOString()
+                'tracking_id' => $colis->tracking_order ?? 'TRK-' . $colis->id_colis,
+                'ref_order' => $colis->ref_order ?? 'CMD-' . $colis->id_colis,
+                'status' => $statusPayload,
+                'service' => $service,
             ];
 
             // Prepare HTTP client with security using new config

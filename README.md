@@ -8,11 +8,12 @@ Colivraison Gateway is a centralized API gateway service built with Laravel that
 
 The Colivraison Gateway acts as a **unified gateway** that:
 
-- **Routes incoming webhooks** from various external services to appropriate internal microservices
+- **Receives status updates** from ColivraisonExpress/BEA system
+- **Maps and transforms** status IDs to structured webhook payloads
+- **Distributes webhooks** to configured partner endpoints
 - **Manages authentication and authorization** for all incoming API requests
 - **Provides centralized logging and monitoring** of all webhook events
 - **Handles rate limiting and request throttling** to protect downstream services
-- **Transforms and validates** incoming data before forwarding to internal services
 - **Implements retry logic and error handling** for reliable message delivery
 
 ## Key Features
@@ -26,9 +27,25 @@ The Colivraison Gateway acts as a **unified gateway** that:
 
 ## Architecture
 
-The gateway serves as the single entry point for external communications, sitting between:
-- **External Services**: Third-party APIs, webhook providers, partner systems
-- **Internal Services**: Colivraison microservices, databases, message queues
+The gateway acts as a transformation layer in the webhook flow:
+
+```
+ColivraisonExpress/BEA → Gateway → Partner Webhooks
+```
+
+1. **Input**: Receives simple status updates from ColivraisonExpress
+   - `order_id`, `id_stats`, `id_partenaire`
+
+2. **Processing**: Gateway maps and enriches the data
+   - Fetches order details from database
+   - Maps status IDs using StatusMapper service
+   - Determines service type (delivery/warehouse/call_center)
+   - Translates status reasons to multiple languages
+
+3. **Output**: Sends structured webhooks to partners
+   - Enriched payload with tracking info, status details, and translations
+   - Proper authentication headers for each partner
+   - Retry logic for failed deliveries
 
 ## Integration Endpoints
 
