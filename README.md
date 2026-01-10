@@ -1,60 +1,81 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Colivraison Gateway
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Overview
 
-## About Laravel
+Colivraison Gateway is a centralized API gateway service built with Laravel that serves as the main entry point for all external webhook integrations and API communications in the Colivraison ecosystem.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Role
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The Colivraison Gateway acts as a **unified gateway** that:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Routes incoming webhooks** from various external services to appropriate internal microservices
+- **Manages authentication and authorization** for all incoming API requests
+- **Provides centralized logging and monitoring** of all webhook events
+- **Handles rate limiting and request throttling** to protect downstream services
+- **Transforms and validates** incoming data before forwarding to internal services
+- **Implements retry logic and error handling** for reliable message delivery
 
-## Learning Laravel
+## Key Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **Webhook Management**: Centralized handling of webhooks from multiple providers
+- **Request Routing**: Intelligent routing of requests to appropriate backend services
+- **Security Layer**: Authentication, authorization, and request validation
+- **Rate Limiting**: Protection against abuse and traffic spikes
+- **Monitoring**: Real-time tracking of webhook events and API usage
+- **Scalability**: Built to handle high volumes of concurrent requests
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Architecture
 
-## Laravel Sponsors
+The gateway serves as the single entry point for external communications, sitting between:
+- **External Services**: Third-party APIs, webhook providers, partner systems
+- **Internal Services**: Colivraison microservices, databases, message queues
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Integration Endpoints
 
-### Premium Partners
+### API Endpoints
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+#### Public Endpoints
+- `GET /api/health` - Gateway health check
+- `GET /api/status-mappings` - Get status mapping configurations
 
-## Contributing
+#### Webhook Dispatch (Authenticated)
+- `POST /api/dispatch` - Dispatch webhooks to configured endpoints
+- `POST /api/webhook/dispatch` - Dispatch webhooks to partner systems
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+*Note: Webhook endpoints require internal authentication middleware*
 
-## Code of Conduct
+### Admin Panel Routes
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Authentication
+- `GET /login` - Admin login page
+- `POST /login` - Process login
+- `POST /logout` - Logout
 
-## Security Vulnerabilities
+#### Dashboard (Admin Protected)
+- `GET /admin/dashboard` - Admin dashboard
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Webhook Management (Admin Protected)
+- `GET /admin/webhooks` - List all webhooks
+- `GET /admin/webhooks/create` - Create webhook form
+- `POST /admin/webhooks` - Store new webhook
+- `GET /admin/webhooks/{id}` - View webhook details
+- `GET /admin/webhooks/{id}/edit` - Edit webhook form
+- `PUT /admin/webhooks/{id}` - Update webhook
+- `DELETE /admin/webhooks/{id}` - Delete webhook
+- `POST /admin/webhooks/{id}/toggle` - Enable/disable webhook
+
+### Authentication
+
+- **API Endpoints**: Protected by `internal` and `webhook.auth` middleware
+- **Admin Panel**: Protected by `admin` middleware with session-based authentication
+
+## Built With
+
+- **Laravel** - PHP Framework
+- **MySQL** - Database for webhook logs and configuration
+- **Redis** - Caching and rate limiting
+- **Queue System** - Asynchronous processing of webhook events
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# coliv_gateway
+This project is proprietary software for Colivraison.

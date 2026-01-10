@@ -23,7 +23,7 @@ class WebhookController extends Controller
      */
     public function create()
     {
-        $users = User::orderBy('name')->get();
+        $users = User::role('client pro')->orderBy('name')->get();
         return view('admin.webhooks.create', compact('users'));
     }
 
@@ -80,7 +80,7 @@ class WebhookController extends Controller
     public function edit(string $id)
     {
         $webhook = UserWebhook::findOrFail($id);
-        $users = User::orderBy('name')->get();
+        $users = User::role('client pro')->orderBy('name')->get();
         
         // Decrypt token for editing
         if ($webhook->security_token && $webhook->security_type !== 'none') {
