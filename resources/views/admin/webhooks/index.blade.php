@@ -13,8 +13,8 @@
                 <div class="flex items-center space-x-4">
                     <h1 class="text-xl font-semibold text-gray-900">Webhook Gateway Admin</h1>
                     <nav class="flex space-x-4">
-                        <a href="http://local-webhook.colivraison:8180/admin/dashboard" class="text-gray-600 hover:text-gray-900">Dashboard</a>
-                        <a href="http://local-webhook.colivraison:8180/admin/webhooks" class="text-indigo-600 font-medium">Webhooks</a>
+                        <a href="{{ url('/admin/dashboard') }}" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                        <a href="{{ url('/admin/webhooks') }}" class="text-indigo-600 font-medium">Webhooks</a>
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -37,7 +37,7 @@
                         <span class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
                             Total: {{ $webhooks->total() }} webhooks
                         </span>
-                        <a href="http://local-webhook.colivraison:8180/admin/webhooks/create" 
+                        <a href="{{ url('/admin/webhooks/create') }}" 
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
@@ -103,7 +103,7 @@
                                     <!-- Action buttons -->
                                     <div class="flex items-center space-x-1">
                                         <!-- View button -->
-                                        <a href="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}" 
+                                        <a href="{{ url('/admin/webhooks/' . $webhook->id) }}" 
                                            class="inline-flex items-center p-1 border border-transparent rounded-md text-indigo-600 hover:bg-indigo-50">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -112,7 +112,7 @@
                                         </a>
                                         
                                         <!-- Edit button -->
-                                        <a href="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}/edit" 
+                                        <a href="{{ url('/admin/webhooks/' . $webhook->id . '/edit') }}" 
                                            class="inline-flex items-center p-1 border border-transparent rounded-md text-yellow-600 hover:bg-yellow-50">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -120,7 +120,7 @@
                                         </a>
                                         
                                         <!-- Toggle status button -->
-                                        <form method="POST" action="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}/toggle" class="inline">
+                                        <form method="POST" action="{{ url('/admin/webhooks/' . $webhook->id . '/toggle') }}" class="inline">
                                             @csrf
                                             <button type="submit" class="inline-flex items-center p-1 border border-transparent rounded-md text-blue-600 hover:bg-blue-50">
                                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@
                                         </form>
                                         
                                         <!-- Delete button -->
-                                        <form method="POST" action="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this webhook?')">
+                                        <form method="POST" action="{{ url('/admin/webhooks/' . $webhook->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this webhook?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="inline-flex items-center p-1 border border-transparent rounded-md text-red-600 hover:bg-red-50">
@@ -147,7 +147,7 @@
                         <li class="px-6 py-8 text-center text-gray-500">
                             <div class="text-lg font-medium">No webhook configurations found</div>
                             <div class="text-sm">
-                                <a href="http://local-webhook.colivraison:8180/admin/webhooks/create" class="text-indigo-600 hover:text-indigo-500">
+                                <a href="{{ url('/admin/webhooks/create') }}" class="text-indigo-600 hover:text-indigo-500">
                                     Create your first webhook configuration
                                 </a>
                             </div>

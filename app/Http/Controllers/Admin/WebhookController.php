@@ -58,7 +58,7 @@ class WebhookController extends Controller
 
         UserWebhook::create($validated);
 
-        return redirect('http://local-webhook.colivraison:8180/admin/webhooks')
+        return redirect(rtrim(config('app.url'), '/') . '/admin/webhooks')
             ->with('success', 'Webhook configuration created successfully!');
     }
 
@@ -126,7 +126,7 @@ class WebhookController extends Controller
 
         $webhook->update($validated);
 
-        return redirect('http://local-webhook.colivraison:8180/admin/webhooks')
+        return redirect(rtrim(config('app.url'), '/') . '/admin/webhooks')
             ->with('success', 'Webhook configuration updated successfully!');
     }
 
@@ -138,7 +138,7 @@ class WebhookController extends Controller
         $webhook = UserWebhook::findOrFail($id);
         $webhook->delete();
 
-        return redirect('http://local-webhook.colivraison:8180/admin/webhooks')
+        return redirect(rtrim(config('app.url'), '/') . '/admin/webhooks')
             ->with('success', 'Webhook configuration deleted successfully!');
     }
 
@@ -151,7 +151,7 @@ class WebhookController extends Controller
         $webhook->update(['is_active' => !$webhook->is_active]);
         
         $status = $webhook->is_active ? 'activated' : 'deactivated';
-        return redirect('http://local-webhook.colivraison:8180/admin/webhooks')
+        return redirect(rtrim(config('app.url'), '/') . '/admin/webhooks')
             ->with('success', "Webhook {$status} successfully!");
     }
 }

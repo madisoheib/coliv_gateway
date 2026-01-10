@@ -13,8 +13,8 @@
                 <div class="flex items-center space-x-4">
                     <h1 class="text-xl font-semibold text-gray-900">Webhook Gateway Admin</h1>
                     <nav class="flex space-x-4">
-                        <a href="http://local-webhook.colivraison:8180/admin/dashboard" class="text-gray-600 hover:text-gray-900">Dashboard</a>
-                        <a href="http://local-webhook.colivraison:8180/admin/webhooks" class="text-gray-600 hover:text-gray-900">Webhooks</a>
+                        <a href="{{ url('/admin/dashboard') }}" class="text-gray-600 hover:text-gray-900">Dashboard</a>
+                        <a href="{{ url('/admin/webhooks') }}" class="text-gray-600 hover:text-gray-900">Webhooks</a>
                         <span class="text-indigo-600 font-medium">Webhook Details</span>
                     </nav>
                 </div>
@@ -48,7 +48,7 @@
                             Production
                         </span>
                         @endif
-                        <a href="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}/edit" 
+                        <a href="{{ url('/admin/webhooks/' . $webhook->id . '/edit') }}" 
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                             Edit Webhook
                         </a>
@@ -138,14 +138,14 @@
 
                     <!-- Action buttons -->
                     <div class="mt-6 pt-4 border-t border-gray-200 flex space-x-3">
-                        <form method="POST" action="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}/toggle" class="inline">
+                        <form method="POST" action="{{ url('/admin/webhooks/' . $webhook->id . '/toggle') }}" class="inline">
                             @csrf
                             <button type="submit" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                                 {{ $webhook->is_active ? 'Deactivate' : 'Activate' }}
                             </button>
                         </form>
                         
-                        <form method="POST" action="http://local-webhook.colivraison:8180/admin/webhooks/{{ $webhook->id }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this webhook? This action cannot be undone.')">
+                        <form method="POST" action="{{ url('/admin/webhooks/' . $webhook->id) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this webhook? This action cannot be undone.')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">

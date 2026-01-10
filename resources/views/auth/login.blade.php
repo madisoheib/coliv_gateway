@@ -17,7 +17,7 @@
             </p>
         </div>
         
-        <form class="mt-8 space-y-6" method="POST" action="http://local-webhook.colivraison:8180/login">
+        <form class="mt-8 space-y-6" method="POST" action="{{ url('/login') }}">
             @csrf
             
             <div class="rounded-md shadow-sm -space-y-px">

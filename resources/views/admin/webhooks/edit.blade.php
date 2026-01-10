@@ -194,7 +194,7 @@
 
                     <!-- Submit Buttons -->
                     <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                        <a href="http://local-webhook.colivraison:8180/admin/webhooks" 
+                        <a href="{{ url('/admin/webhooks') }}" 
                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             Cancel
                         </a>

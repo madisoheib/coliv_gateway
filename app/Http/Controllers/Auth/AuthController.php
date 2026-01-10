@@ -28,10 +28,10 @@ class AuthController extends Controller
             // Check if user has admin role
             if (!auth()->user()->hasRole('admin')) {
                 Auth::logout();
-                return redirect('http://local-webhook.colivraison:8180/login')->with('error', 'Access denied. Admin role required.');
+                return redirect(rtrim(config('app.url'), '/') . '/login')->with('error', 'Access denied. Admin role required.');
             }
 
-            return redirect('http://local-webhook.colivraison:8180/admin/dashboard');
+            return redirect(rtrim(config('app.url'), '/') . '/admin/dashboard');
         }
 
         return back()->withErrors([
@@ -46,6 +46,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('http://local-webhook.colivraison:8180/login');
+        return redirect(rtrim(config('app.url'), '/') . '/login');
     }
 }

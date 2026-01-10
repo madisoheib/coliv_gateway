@@ -17,7 +17,7 @@ class AdminMiddleware
     {
         // Check if user is authenticated
         if (!auth()->check()) {
-            return redirect('http://local-webhook.colivraison:8180/login')->with('error', 'Please login to access admin area.');
+            return redirect(rtrim(config('app.url'), '/') . '/login')->with('error', 'Please login to access admin area.');
         }
 
         // Check if user has admin role
