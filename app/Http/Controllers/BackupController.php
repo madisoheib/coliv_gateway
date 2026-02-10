@@ -73,8 +73,8 @@ class BackupController extends Controller
             'message' => 'Starting database backup...',
         ]));
 
-        // Launch backup in background
-        $php = PHP_BINARY;
+        // Launch backup in background — use 'php' CLI (PHP_BINARY may point to php-fpm)
+        $php = trim(shell_exec('which php') ?: 'php');
         $artisan = base_path('artisan');
         $cmd = sprintf(
             '%s %s backup:run --only-db > %s 2>&1 & echo $!',
