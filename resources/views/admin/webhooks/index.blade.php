@@ -15,6 +15,8 @@
                     <nav class="flex space-x-4">
                         <a href="{{ url('/admin/dashboard') }}" class="text-gray-600 hover:text-gray-900">Dashboard</a>
                         <a href="{{ url('/admin/webhooks') }}" class="text-indigo-600 font-medium">Webhooks</a>
+                        <a href="{{ url('/backup') }}" class="text-gray-600 hover:text-gray-900">Backups</a>
+                        <a href="{{ url('/backup/settings') }}" class="text-gray-600 hover:text-gray-900">Settings</a>
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
