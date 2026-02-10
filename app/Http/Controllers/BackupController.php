@@ -122,6 +122,20 @@ class BackupController extends Controller
     {
         $settings = BackupSetting::pluck('value', 'key')->toArray();
 
+        // Merge .env fallbacks so the user sees what's actually configured
+        $envDefaults = [
+            's3_key' => config('filesystems.disks.s3.key', ''),
+            's3_secret' => config('filesystems.disks.s3.secret', ''),
+            's3_region' => config('filesystems.disks.s3.region', 'us-east-1'),
+            's3_bucket' => config('filesystems.disks.s3.bucket', ''),
+        ];
+
+        foreach ($envDefaults as $key => $envValue) {
+            if (empty($settings[$key] ?? '') && ! empty($envValue)) {
+                $settings[$key] = $envValue;
+            }
+        }
+
         return view('backup.settings', [
             'settings' => $settings,
         ]);
@@ -195,6 +209,13 @@ class BackupController extends Controller
     protected function getBackupDisk(): ?\Illuminate\Contracts\Filesystem\Filesystem
     {
         try {
+            $bucket = config('filesystems.disks.backups.bucket', '');
+            if (empty($bucket)) {
+                session()->flash('error', 'S3 bucket is not configured. Go to Settings to fill in your S3 credentials.');
+
+                return null;
+            }
+
             return Storage::disk('backups');
         } catch (\Exception) {
             return null;
