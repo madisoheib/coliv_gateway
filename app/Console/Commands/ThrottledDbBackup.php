@@ -90,12 +90,16 @@ class ThrottledDbBackup extends Command
             return 1;
         }
 
-        // Upload to S3
+        // Upload to S3 using stream (no memory limit issue)
         $this->info('Uploading to S3...');
         try {
             $disk = Storage::disk('backups');
             $s3Path = $appName . '/' . basename($zipFile);
-            $disk->put($s3Path, file_get_contents($zipFile));
+            $stream = fopen($zipFile, 'r');
+            $disk->writeStream($s3Path, $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
             $this->info("Uploaded to: {$s3Path}");
         } catch (\Exception $e) {
             $this->error('S3 upload failed: ' . $e->getMessage());
