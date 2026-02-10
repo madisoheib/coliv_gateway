@@ -209,6 +209,14 @@
         csrf.value = document.querySelector('meta[name="csrf-token"]').content;
         form.appendChild(csrf);
 
+        ['s3_key', 's3_secret', 's3_region', 's3_bucket', 's3_path'].forEach(function(name) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = document.getElementById(name).value;
+            form.appendChild(input);
+        });
+
         document.body.appendChild(form);
         form.submit();
     });

@@ -154,13 +154,14 @@ class BackupController extends Controller
         return redirect()->route('backup.settings')->with('success', 'Settings saved successfully.');
     }
 
-    public function testConnection()
+    public function testConnection(Request $request)
     {
         try {
-            $key = BackupSetting::get('s3_key', '');
-            $secret = BackupSetting::get('s3_secret', '');
-            $region = BackupSetting::get('s3_region', 'us-east-1');
-            $bucket = BackupSetting::get('s3_bucket', '');
+            $key = $request->input('s3_key') ?: BackupSetting::get('s3_key', '');
+            $secret = $request->input('s3_secret') ?: BackupSetting::get('s3_secret', '');
+            $region = $request->input('s3_region') ?: BackupSetting::get('s3_region', 'us-east-1');
+            $bucket = $request->input('s3_bucket') ?: BackupSetting::get('s3_bucket', '');
+            $path = $request->input('s3_path') ?: BackupSetting::get('s3_path', 'backups');
 
             if (! $key || ! $secret || ! $bucket) {
                 return back()->with('error', 'S3 credentials are incomplete. Please fill in Key, Secret, and Bucket.');
@@ -172,7 +173,7 @@ class BackupController extends Controller
                 'secret' => $secret,
                 'region' => $region,
                 'bucket' => $bucket,
-                'root' => BackupSetting::get('s3_path', 'backups'),
+                'root' => $path,
                 'throw' => true,
             ]);
 
