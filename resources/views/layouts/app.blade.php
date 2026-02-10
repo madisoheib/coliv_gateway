@@ -15,7 +15,10 @@
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 justify-between">
                     <div class="flex items-center space-x-4">
-                        <h1 class="text-xl font-semibold text-gray-900">{{ config('app.name') }}</h1>
+                        <a href="{{ url('/admin/dashboard') }}" class="flex items-center space-x-2">
+                            <img src="{{ asset('logo.png') }}" alt="Colivraison" class="h-8 w-8 rounded">
+                            <span class="text-xl font-semibold text-gray-900">Colivraison Gateway</span>
+                        </a>
                         <nav class="flex space-x-4">
                             <a href="{{ url('/admin/dashboard') }}"
                                class="{{ request()->is('admin/dashboard') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">

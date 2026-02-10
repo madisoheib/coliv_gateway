@@ -29,7 +29,8 @@ COPY . /var/www
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Create storage directories and set permissions
-RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views \
+RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views storage/app/backup-temp \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 # Expose port 8080
