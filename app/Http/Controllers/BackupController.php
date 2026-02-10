@@ -77,7 +77,7 @@ class BackupController extends Controller
         $php = trim(shell_exec('which php') ?: 'php');
         $artisan = base_path('artisan');
         $cmd = sprintf(
-            '%s %s backup:run --only-db > %s 2>&1 & echo $!',
+            'nice -n 19 ionice -c2 -n7 %s %s backup:run --only-db > %s 2>&1 & echo $!',
             escapeshellarg($php),
             escapeshellarg($artisan),
             escapeshellarg(storage_path('app/backup-output.log'))
