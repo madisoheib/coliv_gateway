@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     mariadb-client \
+    pv \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
 # Install Redis extension

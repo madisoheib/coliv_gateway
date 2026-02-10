@@ -77,7 +77,7 @@ class BackupController extends Controller
         $php = trim(shell_exec('which php') ?: 'php');
         $artisan = base_path('artisan');
         $cmd = sprintf(
-            'nice -n 19 ionice -c2 -n7 %s %s backup:run --only-db > %s 2>&1 & echo $!',
+            'nice -n 19 ionice -c2 -n7 %s %s backup:db-throttled --rate=5m > %s 2>&1 & echo $!',
             escapeshellarg($php),
             escapeshellarg($artisan),
             escapeshellarg(storage_path('app/backup-output.log'))
@@ -133,8 +133,8 @@ class BackupController extends Controller
 
         if (! $isRunning) {
             // Process finished - check if successful
-            $success = str_contains($outputContent, 'Backup completed') ||
-                       str_contains($outputContent, 'successfully');
+            $success = str_contains($outputContent, 'Backup completed successfully') ||
+                       str_contains($outputContent, 'Uploaded to:');
 
             $finalStatus = [
                 'status' => $success ? 'completed' : 'failed',
@@ -167,14 +167,17 @@ class BackupController extends Controller
 
         $lastLine = trim(end($lines));
 
-        if (str_contains($output, 'Dumping database')) {
-            return 'Dumping database...';
+        if (str_contains($output, 'Uploading to S3')) {
+            return 'Uploading to S3...';
         }
-        if (str_contains($output, 'Zipping')) {
+        if (str_contains($output, 'Creating zip')) {
             return 'Compressing backup...';
         }
-        if (str_contains($output, 'Copying')) {
-            return 'Uploading to storage...';
+        if (str_contains($output, 'Dumping database')) {
+            return 'Dumping database (throttled)...';
+        }
+        if (str_contains($output, 'Starting throttled')) {
+            return 'Starting throttled backup...';
         }
 
         return $lastLine ?: 'Processing...';
