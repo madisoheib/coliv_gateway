@@ -23,11 +23,11 @@ class BackupConfigService
 
     protected function configureS3Disk(array $settings): void
     {
-        $key = $settings['s3_key'] ?? '';
-        $secret = $settings['s3_secret'] ?? '';
-        $region = $settings['s3_region'] ?? 'us-east-1';
-        $bucket = $settings['s3_bucket'] ?? '';
-        $path = $settings['s3_path'] ?? 'backups';
+        $key = $settings['s3_key'] ?? '' ?: config('filesystems.disks.s3.key', '');
+        $secret = $settings['s3_secret'] ?? '' ?: config('filesystems.disks.s3.secret', '');
+        $region = $settings['s3_region'] ?? '' ?: config('filesystems.disks.s3.region', 'us-east-1');
+        $bucket = $settings['s3_bucket'] ?? '' ?: config('filesystems.disks.s3.bucket', '');
+        $path = $settings['s3_path'] ?? '' ?: 'backups';
 
         config(['filesystems.disks.backups' => [
             'driver' => 's3',
