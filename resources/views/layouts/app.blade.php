@@ -24,8 +24,12 @@
                                 Webhooks
                             </a>
                             <a href="{{ url('/backup') }}"
-                               class="{{ request()->is('backup') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                               class="{{ request()->is('backup') && !request()->is('backup/*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
                                 Backups
+                            </a>
+                            <a href="{{ url('/backup/logs') }}"
+                               class="{{ request()->is('backup/logs*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                                Logs
                             </a>
                             <a href="{{ url('/backup/settings') }}"
                                class="{{ request()->is('backup/settings') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">

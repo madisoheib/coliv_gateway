@@ -56,14 +56,128 @@ class BackupController extends Controller
 
     public function runBackup()
     {
-        try {
-            Artisan::call('backup:run', ['--only-db' => true]);
-            $output = Artisan::output();
+        $statusFile = storage_path('app/backup-status.json');
 
-            return back()->with('success', 'Database backup completed successfully.')->with('output', $output);
-        } catch (\Exception $e) {
-            return back()->with('error', 'Backup failed: ' . $e->getMessage());
+        // Check if a backup is already running
+        if (file_exists($statusFile)) {
+            $status = json_decode(file_get_contents($statusFile), true);
+            if (($status['status'] ?? '') === 'running') {
+                return back()->with('error', 'A backup is already running.');
+            }
         }
+
+        // Write initial status
+        file_put_contents($statusFile, json_encode([
+            'status' => 'running',
+            'started_at' => now()->toDateTimeString(),
+            'message' => 'Starting database backup...',
+        ]));
+
+        // Launch backup in background
+        $php = PHP_BINARY;
+        $artisan = base_path('artisan');
+        $cmd = sprintf(
+            '%s %s backup:run --only-db > %s 2>&1 & echo $!',
+            escapeshellarg($php),
+            escapeshellarg($artisan),
+            escapeshellarg(storage_path('app/backup-output.log'))
+        );
+
+        $pid = trim(shell_exec($cmd));
+
+        // Store PID
+        file_put_contents($statusFile, json_encode([
+            'status' => 'running',
+            'pid' => (int) $pid,
+            'started_at' => now()->toDateTimeString(),
+            'message' => 'Database backup started...',
+        ]));
+
+        return back()->with('success', 'Backup started in the background. You can track progress below.');
+    }
+
+    public function backupStatus()
+    {
+        $statusFile = storage_path('app/backup-status.json');
+        $outputFile = storage_path('app/backup-output.log');
+
+        if (! file_exists($statusFile)) {
+            return response()->json(['status' => 'idle']);
+        }
+
+        $status = json_decode(file_get_contents($statusFile), true);
+
+        if (($status['status'] ?? '') !== 'running') {
+            return response()->json($status);
+        }
+
+        // Check if process is still running
+        $pid = $status['pid'] ?? 0;
+        $isRunning = $pid > 0 && file_exists("/proc/{$pid}");
+
+        // On macOS, /proc doesn't exist - use kill -0
+        if (! $isRunning && $pid > 0) {
+            exec("kill -0 {$pid} 2>/dev/null", $output, $exitCode);
+            $isRunning = $exitCode === 0;
+        }
+
+        // Read last few lines of output for progress info
+        $outputContent = '';
+        if (file_exists($outputFile)) {
+            $outputContent = file_get_contents($outputFile);
+        }
+
+        // Calculate elapsed time
+        $startedAt = $status['started_at'] ?? now()->toDateTimeString();
+        $elapsed = now()->diffInSeconds(\Carbon\Carbon::parse($startedAt));
+
+        if (! $isRunning) {
+            // Process finished - check if successful
+            $success = str_contains($outputContent, 'Backup completed') ||
+                       str_contains($outputContent, 'successfully');
+
+            $finalStatus = [
+                'status' => $success ? 'completed' : 'failed',
+                'started_at' => $startedAt,
+                'elapsed' => $elapsed,
+                'message' => $success ? 'Backup completed successfully!' : 'Backup failed. Check logs for details.',
+                'output' => $outputContent,
+            ];
+
+            file_put_contents($statusFile, json_encode($finalStatus));
+
+            return response()->json($finalStatus);
+        }
+
+        return response()->json([
+            'status' => 'running',
+            'pid' => $pid,
+            'started_at' => $startedAt,
+            'elapsed' => $elapsed,
+            'message' => $this->parseBackupProgress($outputContent),
+        ]);
+    }
+
+    protected function parseBackupProgress(string $output): string
+    {
+        $lines = array_filter(explode("\n", trim($output)));
+        if (empty($lines)) {
+            return 'Starting backup...';
+        }
+
+        $lastLine = trim(end($lines));
+
+        if (str_contains($output, 'Dumping database')) {
+            return 'Dumping database...';
+        }
+        if (str_contains($output, 'Zipping')) {
+            return 'Compressing backup...';
+        }
+        if (str_contains($output, 'Copying')) {
+            return 'Uploading to storage...';
+        }
+
+        return $lastLine ?: 'Processing...';
     }
 
     public function clean()
@@ -204,6 +318,90 @@ class BackupController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'S3 connection failed: ' . $e->getMessage());
         }
+    }
+
+    public function logs(Request $request)
+    {
+        $logFile = storage_path('logs/laravel.log');
+        $entries = [];
+        $fileSize = 0;
+        $lastModified = null;
+
+        if (file_exists($logFile)) {
+            $fileSize = filesize($logFile);
+            $lastModified = date('Y-m-d H:i:s', filemtime($logFile));
+
+            $lines = $this->tailFile($logFile, 500);
+            $entries = $this->parseLogEntries($lines);
+
+            if ($level = $request->query('level')) {
+                $entries = array_values(array_filter($entries, function ($entry) use ($level) {
+                    return strtolower($entry['level']) === strtolower($level);
+                }));
+            }
+        }
+
+        return view('backup.logs', [
+            'entries' => $entries,
+            'fileSize' => $this->humanFileSize($fileSize),
+            'lastModified' => $lastModified,
+            'currentLevel' => $request->query('level', ''),
+        ]);
+    }
+
+    public function clearLogs()
+    {
+        $logFile = storage_path('logs/laravel.log');
+
+        if (file_exists($logFile)) {
+            file_put_contents($logFile, '');
+        }
+
+        return back()->with('success', 'Log file cleared successfully.');
+    }
+
+    protected function tailFile(string $path, int $lines): string
+    {
+        $file = new \SplFileObject($path, 'r');
+        $file->seek(PHP_INT_MAX);
+        $totalLines = $file->key();
+
+        $start = max(0, $totalLines - $lines);
+        $file->seek($start);
+
+        $content = '';
+        while (! $file->eof()) {
+            $content .= $file->fgets();
+        }
+
+        return $content;
+    }
+
+    protected function parseLogEntries(string $raw): array
+    {
+        $entries = [];
+        $pattern = '/^\[(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}[\.\d]*[+\-\d:]*)\]\s+\w+\.(\w+):\s*(.*)/m';
+
+        preg_match_all($pattern, $raw, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
+
+        foreach ($matches as $i => $match) {
+            $timestamp = $match[1][0];
+            $level = strtoupper($match[2][0]);
+            $message = trim($match[3][0]);
+
+            $endOfMatch = $match[0][1] + strlen($match[0][0]);
+            $nextStart = isset($matches[$i + 1]) ? $matches[$i + 1][0][1] : strlen($raw);
+            $stackTrace = trim(substr($raw, $endOfMatch, $nextStart - $endOfMatch));
+
+            $entries[] = [
+                'timestamp' => $timestamp,
+                'level' => $level,
+                'message' => $message,
+                'stack_trace' => $stackTrace,
+            ];
+        }
+
+        return array_reverse($entries);
     }
 
     protected function getBackupDisk(): ?\Illuminate\Contracts\Filesystem\Filesystem

@@ -29,6 +29,44 @@
         </div>
     </div>
 
+    {{-- Backup Progress Bar --}}
+    <div id="backup-progress" class="mb-8 hidden">
+        <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 animate-spin text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-gray-900" id="progress-title">Backup in progress...</span>
+                </div>
+                <span class="text-sm text-gray-500" id="progress-elapsed"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div id="progress-bar" class="bg-indigo-600 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 5%"></div>
+            </div>
+            <p class="mt-2 text-sm text-gray-500" id="progress-message">Starting...</p>
+        </div>
+    </div>
+
+    {{-- Backup Complete Banner --}}
+    <div id="backup-complete" class="mb-8 hidden">
+        <div class="rounded-md p-4" id="backup-complete-inner">
+            <div class="flex">
+                <div class="shrink-0" id="backup-complete-icon"></div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium" id="backup-complete-message"></p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button type="button" onclick="document.getElementById('backup-complete').classList.add('hidden'); location.reload();"
+                            class="inline-flex rounded-md p-1.5 focus:outline-none">
+                        <span class="text-sm font-medium underline" id="backup-complete-action">Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Status Cards --}}
     <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
@@ -126,13 +164,116 @@
 
 @push('scripts')
 <script>
-    document.getElementById('backup-form').addEventListener('submit', function() {
+    const statusUrl = '{{ route("backup.status") }}';
+    let polling = null;
+    let simulatedProgress = 5;
+
+    function formatElapsed(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        if (m > 0) return m + 'm ' + s + 's';
+        return s + 's';
+    }
+
+    function showProgress(data) {
+        const el = document.getElementById('backup-progress');
+        const bar = document.getElementById('progress-bar');
+        const msg = document.getElementById('progress-message');
+        const elapsed = document.getElementById('progress-elapsed');
+        const title = document.getElementById('progress-title');
         const btn = document.getElementById('backup-btn');
-        const spinner = document.getElementById('backup-spinner');
-        const text = document.getElementById('backup-btn-text');
+
+        el.classList.remove('hidden');
         btn.disabled = true;
-        spinner.classList.remove('hidden');
-        text.textContent = 'Running...';
+        document.getElementById('backup-spinner').classList.remove('hidden');
+        document.getElementById('backup-btn-text').textContent = 'Running...';
+
+        msg.textContent = data.message || 'Processing...';
+        elapsed.textContent = data.elapsed ? formatElapsed(data.elapsed) : '';
+
+        // Simulate progress based on stage
+        if (data.message && data.message.includes('Dumping')) {
+            simulatedProgress = Math.min(simulatedProgress + 2, 50);
+        } else if (data.message && data.message.includes('Compress')) {
+            simulatedProgress = Math.min(simulatedProgress + 3, 75);
+        } else if (data.message && data.message.includes('Upload')) {
+            simulatedProgress = Math.min(simulatedProgress + 4, 95);
+        } else {
+            simulatedProgress = Math.min(simulatedProgress + 1, 40);
+        }
+
+        bar.style.width = simulatedProgress + '%';
+    }
+
+    function showComplete(data) {
+        document.getElementById('backup-progress').classList.add('hidden');
+        const el = document.getElementById('backup-complete');
+        const inner = document.getElementById('backup-complete-inner');
+        const icon = document.getElementById('backup-complete-icon');
+        const msg = document.getElementById('backup-complete-message');
+        const action = document.getElementById('backup-complete-action');
+
+        el.classList.remove('hidden');
+
+        if (data.status === 'completed') {
+            inner.className = 'rounded-md bg-green-50 p-4 flex';
+            icon.innerHTML = '<svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>';
+            msg.className = 'text-sm font-medium text-green-800';
+            msg.textContent = data.message + (data.elapsed ? ' (' + formatElapsed(data.elapsed) + ')' : '');
+            action.className = 'text-sm font-medium text-green-600 underline hover:text-green-500';
+        } else {
+            inner.className = 'rounded-md bg-red-50 p-4 flex';
+            icon.innerHTML = '<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>';
+            msg.className = 'text-sm font-medium text-red-800';
+            msg.textContent = data.message;
+            action.className = 'text-sm font-medium text-red-600 underline hover:text-red-500';
+        }
+
+        // Re-enable button
+        document.getElementById('backup-btn').disabled = false;
+        document.getElementById('backup-spinner').classList.add('hidden');
+        document.getElementById('backup-btn-text').textContent = 'Run DB Backup Now';
+    }
+
+    function pollStatus() {
+        fetch(statusUrl)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'running') {
+                    showProgress(data);
+                } else if (data.status === 'completed' || data.status === 'failed') {
+                    clearInterval(polling);
+                    polling = null;
+                    showComplete(data);
+                } else {
+                    // idle - stop polling
+                    clearInterval(polling);
+                    polling = null;
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Start polling on form submit
+    document.getElementById('backup-form').addEventListener('submit', function() {
+        simulatedProgress = 5;
+        showProgress({ message: 'Starting backup...', elapsed: 0 });
+        // Start polling after a short delay to let the POST complete
+        setTimeout(() => {
+            polling = setInterval(pollStatus, 3000);
+        }, 2000);
     });
+
+    // Check on page load if a backup is running
+    fetch(statusUrl)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'running') {
+                simulatedProgress = 20;
+                showProgress(data);
+                polling = setInterval(pollStatus, 3000);
+            }
+        })
+        .catch(() => {});
 </script>
 @endpush

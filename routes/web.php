@@ -44,4 +44,7 @@ Route::prefix('backup')->name('backup.')->middleware('internal')->group(function
     Route::get('/settings', [BackupController::class, 'settings'])->name('settings');
     Route::post('/settings', [BackupController::class, 'updateSettings'])->name('settings.update');
     Route::post('/test-connection', [BackupController::class, 'testConnection'])->name('test-connection');
+    Route::get('/status', [BackupController::class, 'backupStatus'])->name('status');
+    Route::get('/logs', [BackupController::class, 'logs'])->name('logs');
+    Route::post('/logs/clear', [BackupController::class, 'clearLogs'])->name('logs.clear');
 });
