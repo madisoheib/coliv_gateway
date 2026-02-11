@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 class SupervisorController extends Controller
 {
-    protected string $container = 'coliv_beta';
+    protected string $container = 'coliv_supervisor';
 
     public function __construct(protected DockerService $docker) {}
 

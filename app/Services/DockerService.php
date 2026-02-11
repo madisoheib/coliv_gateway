@@ -13,6 +13,7 @@ class DockerService
         'coliv_beta',
         'coliv_websocket',
         'coliv_app',
+        'coliv_supervisor',
         'coliv_redis',
         'coliv_redis_insight',
         'coliv_betamyadmin',
