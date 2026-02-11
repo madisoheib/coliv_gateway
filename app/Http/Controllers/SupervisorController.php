@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 
 class SupervisorController extends Controller
 {
-    protected string $container = 'coliv_supervisor';
+    protected string $container = 'coliv_beta';
 
     public function __construct(protected DockerService $docker) {}
 
@@ -77,7 +77,7 @@ class SupervisorController extends Controller
 
     protected function getConfigs(): array
     {
-        $output = $this->docker->exec($this->container, 'find /etc/supervisor/conf.d -name "*.conf" -type f 2>/dev/null');
+        $output = $this->docker->exec($this->container, 'find /etc/supervisor/conf.d-enabled /etc/supervisor/conf.d -name "*.conf" -type f 2>/dev/null | sort -u');
         $configs = [];
 
         foreach (explode("\n", trim($output)) as $file) {

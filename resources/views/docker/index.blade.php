@@ -27,11 +27,11 @@
         </div>
         <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
             <dt class="truncate text-sm font-medium text-gray-500">Running</dt>
-            <dd class="mt-1 text-lg font-semibold tracking-tight text-green-600" id="stat-running">{{ count(array_filter($containers, fn($c) => str_contains($c['status'], 'Up'))) }}</dd>
+            <dd class="mt-1 text-lg font-semibold tracking-tight text-green-600" id="stat-running">{{ count(array_filter($containers, fn($c) => ($c['state'] ?? '') === 'running')) }}</dd>
         </div>
         <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
             <dt class="truncate text-sm font-medium text-gray-500">Stopped</dt>
-            <dd class="mt-1 text-lg font-semibold tracking-tight text-red-600" id="stat-stopped">{{ count(array_filter($containers, fn($c) => !str_contains($c['status'], 'Up'))) }}</dd>
+            <dd class="mt-1 text-lg font-semibold tracking-tight text-red-600" id="stat-stopped">{{ count(array_filter($containers, fn($c) => ($c['state'] ?? '') !== 'running')) }}</dd>
         </div>
         <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
             <dt class="truncate text-sm font-medium text-gray-500">Last Updated</dt>
@@ -64,10 +64,12 @@
                         <tr data-container="{{ $c['name'] }}">
                             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{{ $c['name'] }}</td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                @if(str_contains($c['status'], 'Up'))
+                                @if(($c['state'] ?? '') === 'running')
                                     <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">{{ $c['status'] }}</span>
-                                @else
+                                @elseif(($c['state'] ?? '') === 'exited')
                                     <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-red-600/20 ring-inset">{{ $c['status'] }}</span>
+                                @else
+                                    <span class="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/20 ring-inset">{{ $c['status'] }}</span>
                                 @endif
                             </td>
                             <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $c['cpu'] }}</td>
@@ -110,12 +112,13 @@
     const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     let pollTimer = null;
 
-    function statusBadge(status) {
-        const isUp = status.includes('Up');
-        const cls = isUp
-            ? 'inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset'
-            : 'inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-red-600/20 ring-inset';
-        return `<span class="${cls}">${status}</span>`;
+    function statusBadge(state, status) {
+        const map = {
+            running: { bg: 'bg-green-50', text: 'text-green-700', ring: 'ring-green-600/20' },
+            exited:  { bg: 'bg-red-50', text: 'text-red-700', ring: 'ring-red-600/20' },
+        };
+        const s = map[state] || { bg: 'bg-gray-50', text: 'text-gray-600', ring: 'ring-gray-500/20' };
+        return `<span class="inline-flex items-center rounded-full ${s.bg} px-2 py-1 text-xs font-medium ${s.text} ring-1 ${s.ring} ring-inset">${status}</span>`;
     }
 
     function fetchStats() {
@@ -124,7 +127,7 @@
             .then(data => {
                 const containers = data.containers;
                 const tbody = document.getElementById('container-tbody');
-                const running = containers.filter(c => c.status.includes('Up')).length;
+                const running = containers.filter(c => c.state === 'running').length;
                 const stopped = containers.length - running;
 
                 document.getElementById('stat-total').textContent = containers.length;
@@ -135,7 +138,7 @@
                 tbody.innerHTML = containers.map(c => `
                     <tr data-container="${c.name}">
                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${c.name}</td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm">${statusBadge(c.status)}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm">${statusBadge(c.state, c.status)}</td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${c.cpu}</td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${c.mem_usage}</td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${c.mem_perc}</td>

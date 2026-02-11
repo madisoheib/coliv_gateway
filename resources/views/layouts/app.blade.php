@@ -40,18 +40,27 @@
                                class="{{ request()->is('backup/settings') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
                                 Settings
                             </a>
-                            <a href="{{ url('/docker') }}"
-                               class="{{ request()->is('docker*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
-                                Docker
-                            </a>
-                            <a href="{{ url('/commands') }}"
-                               class="{{ request()->is('commands*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
-                                Commands
-                            </a>
-                            <a href="{{ url('/supervisor') }}"
-                               class="{{ request()->is('supervisor*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
-                                Supervisor
-                            </a>
+                            {{-- DevOps Tools Dropdown --}}
+                            <div class="relative" id="devops-dropdown">
+                                <button onclick="document.getElementById('devops-menu').classList.toggle('hidden')" type="button"
+                                        class="inline-flex items-center gap-1 {{ request()->is('docker*') || request()->is('commands*') || request()->is('supervisor*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                                    DevOps Tools
+                                    <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="devops-menu" class="hidden absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5">
+                                    <a href="{{ url('/docker') }}" class="block px-4 py-2 text-sm {{ request()->is('docker*') ? 'bg-gray-50 text-indigo-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">
+                                        Docker Stats
+                                    </a>
+                                    <a href="{{ url('/commands') }}" class="block px-4 py-2 text-sm {{ request()->is('commands*') ? 'bg-gray-50 text-indigo-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">
+                                        Quick Commands
+                                    </a>
+                                    <a href="{{ url('/supervisor') }}" class="block px-4 py-2 text-sm {{ request()->is('supervisor*') ? 'bg-gray-50 text-indigo-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">
+                                        Supervisor
+                                    </a>
+                                </div>
+                            </div>
                         </nav>
                     </div>
                     @auth
@@ -104,6 +113,15 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('click', function(e) {
+            const dd = document.getElementById('devops-dropdown');
+            const menu = document.getElementById('devops-menu');
+            if (dd && menu && !dd.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

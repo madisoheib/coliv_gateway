@@ -159,10 +159,18 @@ class QuickCommandController extends Controller
             'danger' => 'danger',
             'docker_restart' => true,
         ],
-        'restart_supervisor' => [
-            'label' => 'Restart Supervisor',
+        'restart_app' => [
+            'label' => 'Restart Gateway (coliv_app)',
             'command' => null,
-            'container' => 'coliv_supervisor',
+            'container' => 'coliv_app',
+            'category' => 'Container Management',
+            'danger' => 'danger',
+            'docker_restart' => true,
+        ],
+        'restart_whatsapp' => [
+            'label' => 'Restart WhatsApp',
+            'command' => null,
+            'container' => 'coliv_whatsapp',
             'category' => 'Container Management',
             'danger' => 'danger',
             'docker_restart' => true,

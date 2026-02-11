@@ -52,23 +52,23 @@ Route::prefix('backup')->name('backup.')->middleware('internal')->group(function
     Route::post('/logs/clear', [BackupController::class, 'clearLogs'])->name('logs.clear');
 });
 
-// Docker stats (internal access only)
-Route::prefix('docker')->middleware('internal')->group(function () {
-    Route::get('/', [DockerController::class, 'index'])->name('docker.index');
-    Route::get('/stats', [DockerController::class, 'stats'])->name('docker.stats');
-    Route::post('/restart/{container}', [DockerController::class, 'restart'])->name('docker.restart');
-});
+// DevOps tools (admin only)
+Route::middleware(['admin'])->group(function () {
+    Route::prefix('docker')->group(function () {
+        Route::get('/', [DockerController::class, 'index'])->name('docker.index');
+        Route::get('/stats', [DockerController::class, 'stats'])->name('docker.stats');
+        Route::post('/restart/{container}', [DockerController::class, 'restart'])->name('docker.restart');
+    });
 
-// Quick commands (internal access only)
-Route::prefix('commands')->middleware('internal')->group(function () {
-    Route::get('/', [QuickCommandController::class, 'index'])->name('commands.index');
-    Route::post('/run', [QuickCommandController::class, 'run'])->name('commands.run');
-});
+    Route::prefix('commands')->group(function () {
+        Route::get('/', [QuickCommandController::class, 'index'])->name('commands.index');
+        Route::post('/run', [QuickCommandController::class, 'run'])->name('commands.run');
+    });
 
-// Supervisor status (internal access only)
-Route::prefix('supervisor')->middleware('internal')->group(function () {
-    Route::get('/', [SupervisorController::class, 'index'])->name('supervisor.index');
-    Route::get('/status', [SupervisorController::class, 'status'])->name('supervisor.status');
-    Route::post('/restart/{process}', [SupervisorController::class, 'restartProcess'])->name('supervisor.restart');
-    Route::post('/restart-all', [SupervisorController::class, 'restartAll'])->name('supervisor.restart-all');
+    Route::prefix('supervisor')->group(function () {
+        Route::get('/', [SupervisorController::class, 'index'])->name('supervisor.index');
+        Route::get('/status', [SupervisorController::class, 'status'])->name('supervisor.status');
+        Route::post('/restart/{process}', [SupervisorController::class, 'restartProcess'])->name('supervisor.restart');
+        Route::post('/restart-all', [SupervisorController::class, 'restartAll'])->name('supervisor.restart-all');
+    });
 });
