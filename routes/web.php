@@ -5,6 +5,9 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\WebhookController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\DockerController;
+use App\Http\Controllers\QuickCommandController;
+use App\Http\Controllers\SupervisorController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -47,4 +50,25 @@ Route::prefix('backup')->name('backup.')->middleware('internal')->group(function
     Route::get('/status', [BackupController::class, 'backupStatus'])->name('status');
     Route::get('/logs', [BackupController::class, 'logs'])->name('logs');
     Route::post('/logs/clear', [BackupController::class, 'clearLogs'])->name('logs.clear');
+});
+
+// Docker stats (internal access only)
+Route::prefix('docker')->middleware('internal')->group(function () {
+    Route::get('/', [DockerController::class, 'index'])->name('docker.index');
+    Route::get('/stats', [DockerController::class, 'stats'])->name('docker.stats');
+    Route::post('/restart/{container}', [DockerController::class, 'restart'])->name('docker.restart');
+});
+
+// Quick commands (internal access only)
+Route::prefix('commands')->middleware('internal')->group(function () {
+    Route::get('/', [QuickCommandController::class, 'index'])->name('commands.index');
+    Route::post('/run', [QuickCommandController::class, 'run'])->name('commands.run');
+});
+
+// Supervisor status (internal access only)
+Route::prefix('supervisor')->middleware('internal')->group(function () {
+    Route::get('/', [SupervisorController::class, 'index'])->name('supervisor.index');
+    Route::get('/status', [SupervisorController::class, 'status'])->name('supervisor.status');
+    Route::post('/restart/{process}', [SupervisorController::class, 'restartProcess'])->name('supervisor.restart');
+    Route::post('/restart-all', [SupervisorController::class, 'restartAll'])->name('supervisor.restart-all');
 });

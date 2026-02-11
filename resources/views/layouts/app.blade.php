@@ -40,6 +40,18 @@
                                class="{{ request()->is('backup/settings') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
                                 Settings
                             </a>
+                            <a href="{{ url('/docker') }}"
+                               class="{{ request()->is('docker*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                                Docker
+                            </a>
+                            <a href="{{ url('/commands') }}"
+                               class="{{ request()->is('commands*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                                Commands
+                            </a>
+                            <a href="{{ url('/supervisor') }}"
+                               class="{{ request()->is('supervisor*') ? 'text-indigo-600 font-medium' : 'text-gray-600 hover:text-gray-900' }}">
+                                Supervisor
+                            </a>
                         </nav>
                     </div>
                     @auth
