@@ -209,10 +209,24 @@ class BackupController extends Controller
             return back()->with('error', 'Backup file not found.');
         }
 
-        return response()->streamDownload(function () use ($disk, $path) {
-            echo $disk->get($path);
-        }, basename($path), [
+        $stream = $disk->readStream($path);
+
+        if (! $stream) {
+            return back()->with('error', 'Could not read backup file.');
+        }
+
+        $size = $disk->size($path);
+
+        return response()->stream(function () use ($stream) {
+            while (! feof($stream)) {
+                echo fread($stream, 8192);
+                flush();
+            }
+            fclose($stream);
+        }, 200, [
             'Content-Type' => 'application/zip',
+            'Content-Length' => $size,
+            'Content-Disposition' => 'attachment; filename="' . basename($path) . '"',
         ]);
     }
 
