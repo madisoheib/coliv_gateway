@@ -68,7 +68,15 @@ Route::middleware(['admin'])->group(function () {
     Route::prefix('supervisor')->group(function () {
         Route::get('/', [SupervisorController::class, 'index'])->name('supervisor.index');
         Route::get('/status', [SupervisorController::class, 'status'])->name('supervisor.status');
-        Route::post('/restart/{process}', [SupervisorController::class, 'restartProcess'])->name('supervisor.restart');
-        Route::post('/restart-all', [SupervisorController::class, 'restartAll'])->name('supervisor.restart-all');
+        Route::post('/{container}/{process}/start', [SupervisorController::class, 'startProcess'])->name('supervisor.start');
+        Route::post('/{container}/{process}/stop', [SupervisorController::class, 'stopProcess'])->name('supervisor.stop');
+        Route::post('/{container}/{process}/restart', [SupervisorController::class, 'restartProcess'])->name('supervisor.restart');
+        Route::post('/{container}/restart-all', [SupervisorController::class, 'restartAll'])->name('supervisor.restart-all');
+
+        Route::get('/programs/create', [SupervisorController::class, 'createProgram'])->name('supervisor.programs.create');
+        Route::post('/programs', [SupervisorController::class, 'storeProgram'])->name('supervisor.programs.store');
+        Route::get('/{container}/programs/{file}/edit', [SupervisorController::class, 'editProgram'])->name('supervisor.programs.edit');
+        Route::put('/{container}/programs/{file}', [SupervisorController::class, 'updateProgram'])->name('supervisor.programs.update');
+        Route::delete('/{container}/programs/{file}', [SupervisorController::class, 'deleteProgram'])->name('supervisor.programs.delete');
     });
 });

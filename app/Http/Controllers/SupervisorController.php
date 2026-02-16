@@ -2,102 +2,211 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DockerService;
+use App\Http\Requests\SupervisorProgramRequest;
+use App\Services\SupervisorService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SupervisorController extends Controller
 {
-    protected string $container = 'coliv_supervisor';
+    public function __construct(protected SupervisorService $supervisor) {}
 
-    public function __construct(protected DockerService $docker) {}
-
-    public function index()
+    public function index(Request $request)
     {
+        $containers = $this->supervisor->getContainers();
+        $active = $request->query('container', array_key_first($containers));
+
+        if (!$this->supervisor->isValidContainer($active)) {
+            $active = array_key_first($containers);
+        }
+
         return view('supervisor.index', [
-            'processes' => $this->getProcesses(),
-            'configs' => $this->getConfigs(),
+            'containers' => $containers,
+            'active' => $active,
+            'processes' => $this->supervisor->getProcesses($active),
+            'configs' => $this->supervisor->getConfigs($active),
         ]);
     }
 
-    public function status(): JsonResponse
+    public function status(Request $request): JsonResponse
     {
+        $container = $request->query('container', 'all');
+
+        if ($container === 'all') {
+            return response()->json(['processes' => $this->supervisor->getAllProcesses()]);
+        }
+
+        if (!$this->supervisor->isValidContainer($container)) {
+            return response()->json(['error' => 'Invalid container.'], 422);
+        }
+
         return response()->json([
-            'processes' => $this->getProcesses(),
+            'processes' => $this->supervisor->getProcesses($container),
+            'configs' => $this->supervisor->getConfigs($container),
         ]);
     }
 
-    public function restartProcess(string $process): JsonResponse
+    public function startProcess(string $container, string $process): JsonResponse
     {
-        if (!$this->isValidProcessName($process)) {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return response()->json(['success' => false, 'message' => 'Invalid container.'], 422);
+        }
+        if (!$this->supervisor->isValidProcessName($process)) {
             return response()->json(['success' => false, 'message' => 'Invalid process name.'], 422);
         }
 
-        $output = $this->docker->exec($this->container, 'supervisorctl restart ' . escapeshellarg($process));
-
+        $output = $this->supervisor->startProcess($container, $process);
         $success = str_contains($output, 'started') || str_contains($output, 'ERROR (already started)');
 
-        return response()->json([
-            'success' => $success,
-            'message' => $output ?: 'No output',
+        return response()->json(['success' => $success, 'message' => $output ?: 'No output']);
+    }
+
+    public function stopProcess(string $container, string $process): JsonResponse
+    {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return response()->json(['success' => false, 'message' => 'Invalid container.'], 422);
+        }
+        if (!$this->supervisor->isValidProcessName($process)) {
+            return response()->json(['success' => false, 'message' => 'Invalid process name.'], 422);
+        }
+
+        $output = $this->supervisor->stopProcess($container, $process);
+        $success = str_contains($output, 'stopped') || str_contains($output, 'ERROR (not running)');
+
+        return response()->json(['success' => $success, 'message' => $output ?: 'No output']);
+    }
+
+    public function restartProcess(string $container, string $process): JsonResponse
+    {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return response()->json(['success' => false, 'message' => 'Invalid container.'], 422);
+        }
+        if (!$this->supervisor->isValidProcessName($process)) {
+            return response()->json(['success' => false, 'message' => 'Invalid process name.'], 422);
+        }
+
+        $output = $this->supervisor->restartProcess($container, $process);
+        $success = str_contains($output, 'started') || str_contains($output, 'ERROR (already started)');
+
+        return response()->json(['success' => $success, 'message' => $output ?: 'No output']);
+    }
+
+    public function restartAll(string $container): JsonResponse
+    {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return response()->json(['success' => false, 'message' => 'Invalid container.'], 422);
+        }
+
+        $output = $this->supervisor->restartAll($container);
+
+        return response()->json(['success' => true, 'message' => $output ?: 'All processes restarted.']);
+    }
+
+    public function createProgram()
+    {
+        return view('supervisor.programs.create', [
+            'containers' => $this->supervisor->getContainers(),
         ]);
     }
 
-    public function restartAll(): JsonResponse
+    public function storeProgram(SupervisorProgramRequest $request)
     {
-        $output = $this->docker->exec($this->container, 'supervisorctl restart all');
+        $data = $request->validated();
+        $container = $data['container'];
+        $programName = $data['program_name'];
 
-        return response()->json([
-            'success' => true,
-            'message' => $output ?: 'All processes restarted.',
+        $settings = $this->extractSettings($data);
+        $output = $this->supervisor->createConfig($container, $programName, $settings);
+
+        return redirect()
+            ->route('supervisor.index', ['container' => $container])
+            ->with('success', "Program '{$programName}' created. {$output}");
+    }
+
+    public function editProgram(string $container, string $file)
+    {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid container.');
+        }
+        if (!$this->supervisor->isValidFilename($file)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid filename.');
+        }
+
+        $configs = $this->supervisor->getConfigs($container);
+        $config = collect($configs)->firstWhere('file', $file);
+
+        if (!$config) {
+            return redirect()->route('supervisor.index', ['container' => $container])->with('error', 'Config not found.');
+        }
+
+        $settings = $this->supervisor->parseConfigContent($config['content']);
+
+        return view('supervisor.programs.edit', [
+            'containers' => $this->supervisor->getContainers(),
+            'container' => $container,
+            'file' => $file,
+            'settings' => $settings,
         ]);
     }
 
-    protected function getProcesses(): array
+    public function updateProgram(SupervisorProgramRequest $request, string $container, string $file)
     {
-        $output = $this->docker->exec($this->container, 'supervisorctl status');
-        $processes = [];
+        if (!$this->supervisor->isValidContainer($container)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid container.');
+        }
+        if (!$this->supervisor->isValidFilename($file)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid filename.');
+        }
 
-        foreach (explode("\n", trim($output)) as $line) {
-            if (empty(trim($line))) {
-                continue;
-            }
+        $data = $request->validated();
+        $programName = $data['program_name'];
+        $settings = $this->extractSettings($data);
 
-            // Parse: process_name   STATE   pid XXXX, uptime X:XX:XX
-            if (preg_match('/^(\S+)\s+(RUNNING|STOPPED|STARTING|BACKOFF|STOPPING|EXITED|FATAL|UNKNOWN)\s*(.*)/i', $line, $m)) {
-                $processes[] = [
-                    'name' => $m[1],
-                    'state' => strtoupper($m[2]),
-                    'info' => trim($m[3] ?? ''),
-                ];
+        $output = $this->supervisor->updateConfig($container, $file, $programName, $settings);
+
+        return redirect()
+            ->route('supervisor.index', ['container' => $container])
+            ->with('success', "Program '{$programName}' updated. {$output}");
+    }
+
+    public function deleteProgram(string $container, string $file)
+    {
+        if (!$this->supervisor->isValidContainer($container)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid container.');
+        }
+        if (!$this->supervisor->isValidFilename($file)) {
+            return redirect()->route('supervisor.index')->with('error', 'Invalid filename.');
+        }
+
+        $output = $this->supervisor->deleteConfig($container, $file);
+
+        return redirect()
+            ->route('supervisor.index', ['container' => $container])
+            ->with('success', "Program deleted. {$output}");
+    }
+
+    protected function extractSettings(array $data): array
+    {
+        $settings = [];
+
+        foreach (['command', 'directory', 'user', 'stdout_logfile', 'stdout_logfile_maxbytes'] as $key) {
+            if (!empty($data[$key])) {
+                $settings[$key] = $data[$key];
             }
         }
 
-        return $processes;
-    }
-
-    protected function getConfigs(): array
-    {
-        $output = $this->docker->exec($this->container, 'find /etc/supervisor/conf.d-enabled /etc/supervisor/conf.d -name "*.conf" -type f 2>/dev/null | sort -u');
-        $configs = [];
-
-        foreach (explode("\n", trim($output)) as $file) {
-            $file = trim($file);
-            if (empty($file) || !str_ends_with($file, '.conf')) {
-                continue;
+        foreach (['numprocs', 'stdout_logfile_backups', 'stopwaitsecs'] as $key) {
+            if (isset($data[$key])) {
+                $settings[$key] = (int) $data[$key];
             }
-            $content = $this->docker->exec($this->container, 'cat ' . escapeshellarg($file));
-            $configs[] = [
-                'file' => basename($file),
-                'path' => $file,
-                'content' => $content,
-            ];
         }
 
-        return $configs;
-    }
+        foreach (['autostart', 'autorestart', 'redirect_stderr', 'stopasgroup', 'killasgroup'] as $key) {
+            if (isset($data[$key])) {
+                $settings[$key] = (bool) $data[$key];
+            }
+        }
 
-    protected function isValidProcessName(string $name): bool
-    {
-        return (bool) preg_match('/^[a-zA-Z0-9:_-]+$/', $name);
+        return $settings;
     }
 }
