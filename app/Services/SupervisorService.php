@@ -19,6 +19,17 @@ class SupervisorService
     public function getProcesses(string $container): array
     {
         $output = $this->docker->exec($container, 'supervisorctl status');
+
+        return $this->parseProcessOutput($output);
+    }
+
+    public function getRawOutput(string $container): string
+    {
+        return $this->docker->exec($container, 'supervisorctl status');
+    }
+
+    protected function parseProcessOutput(string $output): array
+    {
         $processes = [];
 
         foreach (explode("\n", trim($output)) as $line) {

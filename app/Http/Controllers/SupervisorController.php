@@ -43,6 +43,7 @@ class SupervisorController extends Controller
         return response()->json([
             'processes' => $this->supervisor->getProcesses($container),
             'configs' => $this->supervisor->getConfigs($container),
+            'raw_output' => $this->supervisor->getRawOutput($container),
         ]);
     }
 
