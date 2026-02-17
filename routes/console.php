@@ -15,10 +15,15 @@ try {
         $frequency = BackupSetting::get('schedule_frequency', 'daily');
         $time = BackupSetting::get('schedule_time', '01:30');
 
-        $backup = Schedule::command('backup:run --only-db');
+        $backup = Schedule::command('backup:db-throttled');
 
         match ($frequency) {
             'hourly' => $backup->hourly(),
+            'every_2h' => $backup->everyTwoHours(),
+            'every_3h' => $backup->everyThreeHours(),
+            'every_4h' => $backup->everyFourHours(),
+            'every_6h' => $backup->everySixHours(),
+            'every_12h' => $backup->twiceDaily(0, 12),
             'weekly' => $backup->weeklyOn(1, $time),
             default => $backup->dailyAt($time),
         };

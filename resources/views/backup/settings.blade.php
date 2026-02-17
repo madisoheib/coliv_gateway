@@ -97,8 +97,17 @@
                         <label for="schedule_frequency" class="block text-sm font-medium text-gray-700">Frequency</label>
                         <select name="schedule_frequency" id="schedule_frequency"
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border">
-                            @foreach(['hourly', 'daily', 'weekly'] as $freq)
-                                <option value="{{ $freq }}" {{ ($settings['schedule_frequency'] ?? 'daily') === $freq ? 'selected' : '' }}>{{ ucfirst($freq) }}</option>
+                            @foreach([
+                                'hourly' => 'Every hour',
+                                'every_2h' => 'Every 2 hours',
+                                'every_3h' => 'Every 3 hours',
+                                'every_4h' => 'Every 4 hours',
+                                'every_6h' => 'Every 6 hours',
+                                'every_12h' => 'Every 12 hours',
+                                'daily' => 'Daily',
+                                'weekly' => 'Weekly (Monday)',
+                            ] as $freq => $label)
+                                <option value="{{ $freq }}" {{ ($settings['schedule_frequency'] ?? 'daily') === $freq ? 'selected' : '' }}>{{ $label }}</option>
                             @endforeach
                         </select>
                     </div>
